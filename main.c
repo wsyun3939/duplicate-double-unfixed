@@ -30,11 +30,10 @@ int main(void) {
 	int missmatch=0;
 	char filename[BUFFER];
 	char str[BUFFER];
-	FILE *fp_csv = NULL;
 	FILE *fp_write=NULL;
 	for (int a = NUMBER; a < NUMBER + 100 * TIER; a++) {
 		FILE * fp = NULL;
-		sprintf(filename, "/Users/watanabeshun/Documents/alpha=%.1f/%d-%d-%d/%05d.txt", ALPHA,TIER, STACK, nblock, a);
+		sprintf(filename, "/home/lab02/s-watanabe/デスクトップ/BlockRelocationProblem/duplicate-double/alpha=%.1f/%d-%d-%d/%05d.txt", ALPHA,TIER, STACK, nblock, a);
 		printf("%s\n", filename);
 
 		//	読み込みモードでファイルを開く
@@ -73,28 +72,19 @@ int main(void) {
 		}
 		fclose(fp);
 		if (a % 100 == 1) {
-			sprintf(filename, "/Users/watanabeshun/Documents/alpha=%.1f/%d-%d-%d.csv", ALPHA, TIER, STACK, nblock);
-			fp_csv=fopen(filename, "r");
-			sprintf(filename, "/Users/watanabeshun/Documents/Benchmark/%d-%d-%d_unfixed.csv", TIER, STACK, nblock);
+			sprintf(filename, "/home/lab02/s-watanabe/デスクトップ/BlockRelocationProblem/duplicate-double/%d-%d-%d_unfixed.csv", TIER, STACK, nblock);
 			fp_write = fopen(filename, "w");
-		}
-		fscanf(fp_csv, "%d ", &x);
-		if (x != min_relocation) {
-			if(x<min_relocation) getchar();
-			printf("missmatch\n");
-			missmatch++;
 		}
 		fprintf(fp_write, "%d\n", min_relocation);
 		Array_clear(stack);
 		if (a % 100 == 0) {
 			nblock++;
-			fclose(fp_csv);
 			fclose(fp_write);
 		}
 	}
 	clock_t end = clock();
 	Array_terminate(stack);
-	printf("time:%f,match:%d,ave:%f,missmatch:%d,gap:%f\n", (double)(end - start) / CLOCKS_PER_SEC, k, (double)sum / (100 * TIER),missmatch,(double)gap/(100*TIER-k));
+	printf("time:%f,match:%d,ave:%f,gap:%f\n", (double)(end - start) / CLOCKS_PER_SEC, k, (double)sum / (100 * TIER),(double)gap/(100*TIER-k));
 	return 0;
 }
 
