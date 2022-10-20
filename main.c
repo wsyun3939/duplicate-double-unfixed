@@ -33,7 +33,7 @@ int main(void) {
 	FILE *fp_write=NULL;
 	for (int a = NUMBER; a < NUMBER + 100 * TIER; a++) {
 		FILE * fp = NULL;
-		sprintf(filename, "/home/lab02/s-watanabe/デスクトップ/BlockRelocationProblem/duplicate-double/alpha=%.1f/%d-%d-%d/%05d.txt", ALPHA,TIER, STACK, nblock, a);
+		sprintf(filename, "../alpha=%.1f/%d-%d-%d/%05d.txt", ALPHA,TIER, STACK, nblock, a);
 		printf("%s\n", filename);
 
 		//	読み込みモードでファイルを開く
@@ -62,8 +62,8 @@ int main(void) {
 		Array_print(stack);
 		int UB_cur = LB1;
 		int priority = 1;
-		// int UB = UpperBound(stack,priority,both);
-		int min_relocation = branch_and_bound(stack, 100,UB_cur, LB1,priority,both);
+		int UB = UpperBound(stack);
+		int min_relocation = branch_and_bound(stack, UB,UB_cur, LB1,priority,both,clock());
 		gap+=min_relocation-LB1;
 		printf("min_relocation:%d,difference%d\n", min_relocation, min_relocation - LB1);
 		sum += min_relocation;
@@ -72,7 +72,7 @@ int main(void) {
 		}
 		fclose(fp);
 		if (a % 100 == 1) {
-			sprintf(filename, "/home/lab02/s-watanabe/デスクトップ/BlockRelocationProblem/duplicate-double/%d-%d-%d_unfixed.csv", TIER, STACK, nblock);
+			sprintf(filename, "../alpha=%.1f/%d-%d-%d_unfixed.csv",ALPHA, TIER, STACK, nblock);
 			fp_write = fopen(filename, "w");
 		}
 		fprintf(fp_write, "%d\n", min_relocation);
