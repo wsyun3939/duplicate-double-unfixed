@@ -152,231 +152,219 @@ int BlockingCmp(const IntDequeue *n1, const IntDequeue *n2) {
 			0;
 }
 
-int UpperBound(const IntDequeue *q,int priority,direction dir) {
-	IntDequeue *q_temp = malloc(STACK*(sizeof *q_temp));
-	Array_initialize(q_temp);
-	Array_copy(q_temp, q);
-	int num_ret;
+int UpperBound(const IntDequeue *q) {
+	static int num_ret;
+	static int NumBlocking = 0;
+	static int p_before = 0;
+	int priority=1;
+	int UB=0;
 	int i = 0;
 	int j = 0;
 	int k = 0;
-	int p_before = priority;
-	int UB = 0;
+	int d=0;
 	int PriorityEdge = 0;
-	int NumBlocking = 0;
-	direction DirNext = dir;
-	LB_idx *BlockingTable = NULL;
-	while (!(IsEmpty(&q_temp[0])))
+	direction dir = lower;
+	direction DirNext = both;
+	IntDequeue *q_temp = malloc(STACK*(sizeof *q_temp));
+	Array_initialize(q_temp);
+	Array_copy(q_temp, q);
+	while(!(IsEmpty(&q_temp[0]))){
+	switch (DirNext)
 	{
-		j = 0;
-		k = 0;
-		switch (DirNext)
-		{
-		case both:
-			while (q_temp[k].que[q_temp[k].min_idx[0]] == priority && !(IsEmpty(&q_temp[k]))) {
-				if (k != 0) {
-					Swap_IntDequeue(&q_temp[0], &q_temp[k]);
+	case both:
+		qsort(q_temp + 1, STACK - 1, sizeof(IntDequeue), (int(*)(const void *, const void *))pricmp);
+
+		k=0;
+		while (q_temp[k].que[q_temp[k].min_idx[0]] == priority && !(IsEmpty(&q_temp[k]))) {
+			if (k != 0) {
+				Swap_IntDequeue(&q_temp[0], &q_temp[k]);
+
+#if TEST==0
+				Array_print(q_temp);
+#endif
+
+			}
+			while ((q_temp[0].que[q_temp[0].front] == priority) || (q_temp[0].que[(q_temp[0].front + q_temp[0].num - 1) % q_temp[0].max] == priority)) {
+				if (q_temp[0].que[q_temp[0].front] == priority) {
+					DequeFront(&q_temp[0], &num_ret);
+
+#if TEST==0
+					printf("Number Retrieval:%d\n", num_ret);
+					Array_print(q_temp);
+#endif
+
 				}
-				while ((q_temp[0].que[q_temp[0].front] == priority) || (q_temp[0].que[(q_temp[0].front + q_temp[0].num - 1) % q_temp[0].max] == priority)) {
-					if (q_temp[0].que[q_temp[0].front] == priority) {
-						DequeFront(&q_temp[0], &num_ret);
-					}
-					else  if (q_temp[0].que[(q_temp[0].front + q_temp[0].num - 1) % q_temp[0].max] == priority) {
-						DequeRear(&q_temp[0], &num_ret);
-					}
-					if (ArrayIsEmpty(q_temp)) {
-						Array_terminate(q_temp);
-						free(q_temp);
-						return UB;
-					}
-					if (IsEmpty(&q_temp[0]))	break;
+				else  if (q_temp[0].que[(q_temp[0].front + q_temp[0].num - 1) % q_temp[0].max] == priority) {
+					DequeRear(&q_temp[0], &num_ret);
+
+#if TEST==0
+					printf("Number Retrieval:%d\n", num_ret);
+					Array_print(q_temp);
+#endif
+
 				}
-				if (!(insert_sort(q_temp))) {
-					if (priority != q_temp[0].que[q_temp[0].min_idx[0]]) {
-						k = 0;
-						priority = q_temp[0].que[q_temp[0].min_idx[0]];
-					}
-					else {
-						if (UB != 0 && priority == p_before) {
-							k = 1;
-							while (q_temp[k].que[q_temp[k].min_idx[0]] == priority) {
-								k++;
-								if (k == STACK) break;
-							}
-							break;
-						}
-						else k++;
-					}
+				if (ArrayIsEmpty(q_temp)) {
+					Array_terminate(q_temp);
+					free(q_temp);
+					return UB;
+				}
+				if (IsEmpty(&q_temp[0]))	break;
+			}
+			if (!(insert_sort(q_temp))) {
+				if (priority != q_temp[0].que[q_temp[0].min_idx[0]]) {
+					k = 0;
+					priority = q_temp[0].que[q_temp[0].min_idx[0]];
 				}
 				else {
-					if (priority != q_temp[0].que[q_temp[0].min_idx[0]]) {
-						k = 0;
-						priority = q_temp[0].que[q_temp[0].min_idx[0]];
-					}
-					else {
-						if (UB != 0 && priority == p_before) {
-							k = 1;
-							while (q_temp[k].que[q_temp[k].min_idx[0]] == priority) {
-								k++;
-								if (k == STACK) break;
-							}
-							break;
-						}
-						else;
-					}
-				}
-				if (k == STACK) {
-					break;
-				}
-			}
-			p_before = priority;
-			qsort(q_temp, k, sizeof(IntDequeue), (int(*)(const void *, const void *))BlockingCmp);
-			int BlockSpace = 0;
-			for (i = 0; i < STACK; i++)	BlockSpace += TIER - q_temp[i].num;
-			for (i = 0; i < k; i++) {
-				if (i != 0) {
-					Swap_IntDequeue(&q_temp[0], &q_temp[i]);
-				}
-				dir = DirNext = q_temp[0].dir;
-				if (dir == both) dir = DirNext = q_temp[0].que[q_temp[0].front] < q_temp[0].que[(q_temp[0].front + q_temp[0].num - 1) % q_temp[0].max] ?
-					lower : upper;
-				switch (dir) {
-				case lower:
-					if (nblocking_lower(&q_temp[0]) > BlockSpace - (TIER - q_temp[0].num)) {
-						Swap_IntDequeue(&q_temp[0], &q_temp[i]);
-						continue;
-					}
-					break;
-				case upper:
-					if (nblocking_upper(&q_temp[0]) > BlockSpace - (TIER - q_temp[0].num)) {
-						Swap_IntDequeue(&q_temp[0], &q_temp[i]);
-						continue;
-					}
-					break;
-				}
-				break;
-			}
-			//おいしくない方向から取り出す
-			if (i == k) {
-				for (i = 0; i < k; i++) {
-					if (i != 0) {
-						Swap_IntDequeue(&q_temp[0], &q_temp[i]);
-					}
-					dir = DirNext = q_temp[0].dir;
-					if (dir == both) dir = DirNext = q_temp[0].que[q_temp[0].front] < q_temp[0].que[(q_temp[0].front + q_temp[0].num - 1) % q_temp[0].max] ?
-						lower : upper;
-					switch (dir) {
-					case lower:
-						if (nblocking_upper(&q_temp[0]) > BlockSpace - (TIER - q_temp[0].num)) {
-							Swap_IntDequeue(&q_temp[0], &q_temp[i]);
-							continue;
-						}
-						else {
-							dir = DirNext = upper;
-						}
-						break;
-					case upper:
-						if (nblocking_lower(&q_temp[0]) > BlockSpace - (TIER - q_temp[0].num)) {
-							Swap_IntDequeue(&q_temp[0], &q_temp[i]);
-							continue;
-						}
-						else {
-							dir = DirNext = lower;
+					if (priority == p_before) {
+						k = 1;
+						while (q_temp[k].que[q_temp[k].min_idx[0]] == priority) {
+							k++;
+							if (k == STACK) break;
 						}
 						break;
 					}
-					break;
-				}
-				if (i == k) return 100;
-			}
-			break;
-		default:
-			UB++;
-			if (dir == lower) {
-				PriorityEdge = q_temp[0].que[q_temp[0].front];
-			}
-			else if (dir == upper) {
-				PriorityEdge = q_temp[0].que[(q_temp[0].front + q_temp[0].num - 1) % q_temp[0].max];
-			}
-			NumBlocking = nblocking(q_temp, dir);
-			if (NumBlocking == 1) {
-				DirNext = both;
-				if (PriorityEdge == priority + 1 && q_temp[1].que[q_temp[1].min_idx[0]] != priority && q_temp[0].num_min == 1) {
-					Deque(&q_temp[0], &num_ret, dir);
-					Deque(&q_temp[0], &num_ret, dir);
-					insert_sort(q_temp);
-					p_before = 0;
-					priority = q_temp[0].que[q_temp[0].min_idx[0]];
-					break;
+					else k++;
 				}
 			}
-			if (IsEmpty(&q_temp[STACK - 1])) {
-				Deque(&q_temp[0], &num_ret, dir);
-				Enque(&q_temp[STACK - 1], num_ret, dir);
-				insert_media(q_temp, STACK - 1);
-				break;
-			}
-			BlockingTable = CreateBlockingTable(q_temp, dir, &j);
-			for (i = j - 1; i >= 0; i--) {
-				if (BlockingTable[i].blocking != 0)	continue;
-				Deque(&q_temp[0], &num_ret,dir);
-				Enque(&q_temp[BlockingTable[i].idx], num_ret, dir);
-				insert_media(q_temp, BlockingTable[i].idx);
-				break;
-			}
-			if (i >= 0);
 			else {
-				for (i = j - 1; i >= 0; i--) {
-					if (BlockingTable[i].blocking != 1)	continue;
-					Deque(&q_temp[0], &num_ret,dir);
-					Enque(&q_temp[BlockingTable[i].idx], num_ret,dir);
-					insert_media(q_temp, BlockingTable[i].idx);
-					break;
+				if (priority != q_temp[0].que[q_temp[0].min_idx[0]]) {
+					k = 0;
+					priority = q_temp[0].que[q_temp[0].min_idx[0]];
+				}
+				else {
+					if (priority == p_before) {
+						k = 1;
+						while (q_temp[k].que[q_temp[k].min_idx[0]] == priority) {
+							k++;
+							if (k == STACK) break;
+						}
+
+#if TEST==0
+						Array_print(q_temp);
+#endif
+
+						break;
+					}
+					else;
 				}
 			}
-			free(BlockingTable);
-			break;
+			if (k == STACK) {
+				break;
+			}
 		}
-	}
-	Array_terminate(q_temp);
-	free(q_temp);
-	return UB;
-}
 
-LB_idx* CreateBlockingTable(IntDequeue *q, direction dir,int *Size) {
-	int *stack_idx = malloc(STACK * sizeof(int));
-	int i = 0;
-	int j = 0;
-	int PriorityEdge = 0;
-	for (i = 1; i < STACK; i++) {
-		if (!(IsFull(&q[i]))) {
-			stack_idx[j] = i;
-			j++;
-		}
-	}
-	*Size = j;
-	LB_idx *BlockingTable = malloc(j*(sizeof *BlockingTable));
-	switch (dir) {
-	case lower:
-		PriorityEdge = q[0].que[q[0].front];
-		for (i = 0; i < j; i++) {
-			//*最下部のブロックを動かした際の下界値*//
-			BlockingTable[i].blocking = EnqueFront(&q[stack_idx[i]], PriorityEdge);
-			BlockingTable[i].idx = stack_idx[i];
-			DequeFront(&q[stack_idx[i]], &PriorityEdge);
-		}
-		break;
-	case upper:
-		PriorityEdge = q[0].que[(q[0].front + q[0].num - 1) % q[0].max];
-		for (i = 0; i < j; i++) {
-			//*最上部のブロックを動かした際の下界値*//
-			BlockingTable[i].blocking = EnqueRear(&q[stack_idx[i]], PriorityEdge);;
-			BlockingTable[i].idx = stack_idx[i];
-			DequeRear(&q[stack_idx[i]], &PriorityEdge);
-		}
 		break;
 	}
-	free(stack_idx);
-	return BlockingTable;
-}
 
+	p_before=priority;
+
+
+#if TEST==0
+		Array_print(q_temp);
+#endif
+
+		UB++;
+
+#if TEST==0
+		printf("Block Relocation(depth=%d)\n",UB);
+#endif
+
+		qsort(q_temp, k, sizeof(IntDequeue), (int(*)(const void *, const void *))BlockingCmp);
+		if(DirNext==both){
+			for(i=0;i<k;i++){
+				if (i != 0) {
+				Swap_IntDequeue(&q_temp[0], &q_temp[i]);
+			}
+
+#if TEST==0
+				printf("swap(%d,%d)\n", 0, i);
+				Array_print(q_temp);
+#endif
+
+			DirNext=upper;
+			dir = q_temp[0].dir;
+			int low=nblocking_lower(q_temp);
+	int upp=nblocking_upper(q_temp);
+			if(dir==both){
+		if(low>upp){
+			dir=upper;
+		}
+		else if(upp>low){
+			dir=lower;
+		}
+		else{
+			dir= q_temp[0].que[q_temp[0].front] < q_temp[0].que[(q_temp[0].front + q_temp[0].num - 1) % q_temp[0].max] ? lower : upper;
+		}	
+		}
+			if (dir == lower) {
+			PriorityEdge = q_temp[0].que[q_temp[0].front];
+		}
+		else if (dir == upper) {
+			PriorityEdge = q_temp[0].que[(q_temp[0].front + q_temp[0].num - 1) % q_temp[0].max];
+		}
+		int num_open=0;
+		for(d=1;d<STACK-1;d++){
+			num_open+=TIER-q_temp[d].num;
+		}
+		if(num_open<nblocking(q_temp,dir));
+		else{
+		if(nblocking(q_temp,dir)==1) DirNext=both;
+		else DirNext=dir;
+		Deque(q_temp,&num_ret,dir);
+		NumBlocking = nblocking(q_temp, dir);
+		if (NumBlocking == 0) DirNext = both;
+		for(j=STACK-1;j>=0;j--){
+		if(Enque(&q_temp[j],PriorityEdge,dir)!= -1){
+
+#if TEST==0
+		Array_print(q_temp);
+#endif
+
+		break;
+		}
+		}
+		break;
+		}
+	}	
+		}
+		else{
+			dir=q_temp[0].dir;
+	int low=nblocking_lower(q_temp);
+	int upp=nblocking_upper(q_temp);
+	if(dir==both){
+		if(low>upp){
+			dir=upper;
+		}
+		else if(upp>low){
+			dir=lower;
+		}
+		else{
+			dir= q_temp[0].que[q_temp[0].front] < q_temp[0].que[(q_temp[0].front + q_temp[0].num - 1) % q_temp[0].max] ? lower : upper;
+		}	
+	}
+	if (dir == lower) {
+		PriorityEdge = q_temp[0].que[q_temp[0].front];
+	}
+	else if (dir == upper) {
+		PriorityEdge = q_temp[0].que[(q_temp[0].front + q_temp[0].num - 1) % q_temp[0].max];
+	}
+	if(nblocking(q_temp,dir)==1) DirNext=both;
+	else DirNext=dir;
+	Deque(&q_temp[0],&num_ret,dir);
+	for(j=STACK-1;j>=0;j--){
+		if(Enque(&q_temp[j],PriorityEdge,dir)!= -1){
+
+#if TEST==0
+		Array_print(q_temp);
+#endif
+
+		break;
+		}
+	}
+		}
+		}
+		Array_terminate(q_temp);
+		free(q_temp);
+		return UB;
+}
