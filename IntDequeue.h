@@ -3,14 +3,15 @@
 #include "data_info.h"
 
 /*--- キューを実現する構造体 ---*/
-typedef struct {
-	int max;		/* キューの容量 */
-	int num;		/* 現在の要素数 */
-	int front;		/* 先頭要素カーソル */
-	int rear;		/* 末尾要素カーソル */
-	int *que;		/* キュー本体（の先頭要素へのポインタ）*/
-	int *min_idx;/*キューの中で最小値をとる添え字へのカーソル*/
-	int num_min;/*キューの中で最小値をとる個数*/
+typedef struct
+{
+	int max;	   /* キューの容量 */
+	int num;	   /* 現在の要素数 */
+	int front;	   /* 先頭要素カーソル */
+	int rear;	   /* 末尾要素カーソル */
+	int *que;	   /* キュー本体（の先頭要素へのポインタ）*/
+	int *min_idx;  /*キューの中で最小値をとる添え字へのカーソル*/
+	int num_min;   /*キューの中で最小値をとる個数*/
 	direction dir; /*取り出すときにお得な方向*/
 	int LB;
 } IntDequeue;
@@ -91,10 +92,10 @@ void Terminate(IntDequeue *q);
 void SearchMin(IntDequeue *q);
 
 /*---キューのコピー---*/
-void Copy(IntDequeue *q1,const IntDequeue *q2);
+void Copy(IntDequeue *q1, const IntDequeue *q2);
 
 /*---配列キューのコピー---*/
-void Array_copy(IntDequeue *q1,const IntDequeue *q2);
+void Array_copy(IntDequeue *q1, const IntDequeue *q2);
 
 /*---配列キューの後始末---*/
 void Array_terminate(IntDequeue *q);
