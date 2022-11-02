@@ -74,7 +74,6 @@ int main(void)
 		int priority = 1;
 		int UB = UpperBound(stack);
 		int min_relocation = branch_and_bound(stack, UB, UB_cur, LB1, priority, both, clock());
-		gap += min_relocation - LB1;
 		printf("min_relocation:%d,difference%d\n", min_relocation, min_relocation - LB1);
 		if (min_relocation == -1)
 		{
