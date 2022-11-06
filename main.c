@@ -94,7 +94,7 @@ int main(void)
 		{
 			sum += min_relocation;
 			gap += min_relocation - LB1;
-			if (UB != 0)
+			if (UB != -1)
 			{
 				UB_gap += UB - min_relocation;
 			}

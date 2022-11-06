@@ -215,7 +215,7 @@ int UpperBound(const IntDequeue *q)
 			qsort(q_temp + 1, STACK - 1, sizeof(IntDequeue), (int (*)(const void *, const void *))pricmp);
 
 			k = 0;
-			priority=q_temp[0].que[q_temp[0].min_idx[0]];
+			priority = q_temp[0].que[q_temp[0].min_idx[0]];
 			while (q_temp[k].que[q_temp[k].min_idx[0]] == priority && !(IsEmpty(&q_temp[k])))
 			{
 				if (k != 0)
@@ -377,7 +377,10 @@ int UpperBound(const IntDequeue *q)
 					num_open += TIER - q_temp[d].num;
 				}
 				if (num_open < nblocking(q_temp, dir))
-					;
+				{
+					if (i == k - 1)
+						return -1;
+				}
 				else
 				{
 					if (nblocking(q_temp, dir) == 1)

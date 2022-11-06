@@ -15,11 +15,19 @@ int branch_and_bound(IntDequeue *q, int UB, int UB_cur, int LB, int priority, di
 	static int MinRelocation = 0;
 	static int NumBlocking = 0;
 	static int p_before = 1;
+
+	int UB_temp = UpperBound(q);
+	if (UB > UB_temp + depth && UB != -1)
+	{
+		UB = UB_temp + depth;
+	}
+
 	if (UB == UB_cur)
 	{
 		depth = 0;
 		return MinRelocation = UB;
 	}
+
 	int i = 0;
 	int j = 0;
 	int k = 0;
@@ -34,7 +42,7 @@ int branch_and_bound(IntDequeue *q, int UB, int UB_cur, int LB, int priority, di
 	clock_t end;
 
 	end = clock();
-	if (((double)(end - start) / CLOCKS_PER_SEC) > 7200)
+	if (((double)(end - start) / CLOCKS_PER_SEC) > 1)
 	{
 		depth = 0;
 		return -1;
