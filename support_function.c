@@ -194,7 +194,7 @@ int UpperBound(const IntDequeue *q)
 {
 	static int num_ret;
 	static int NumBlocking = 0;
-	static int p_before = 0;
+	int p_before = 0;
 	int priority = 1;
 	int UB = 0;
 	int i = 0;
@@ -329,9 +329,9 @@ int UpperBound(const IntDequeue *q)
 		printf("Block Relocation(depth=%d)\n", UB);
 #endif
 
-		qsort(q_temp, k, sizeof(IntDequeue), (int (*)(const void *, const void *))BlockingCmp);
 		if (DirNext == both)
 		{
+			qsort(q_temp, k, sizeof(IntDequeue), (int (*)(const void *, const void *))BlockingCmp);
 			for (i = 0; i < k; i++)
 			{
 				if (i != 0)
@@ -379,7 +379,11 @@ int UpperBound(const IntDequeue *q)
 				if (num_open < nblocking(q_temp, dir))
 				{
 					if (i == k - 1)
+					{
+						Array_terminate(q_temp);
+						free(q_temp);
 						return -1;
+					}
 				}
 				else
 				{

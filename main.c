@@ -82,6 +82,8 @@ int main(void)
 		UB_lapse += clock() - time_start;
 
 		time_start = clock();
+
+		Array_print(stack);
 		int min_relocation = branch_and_bound(stack, UB, UB_cur, LB1, priority, both, clock());
 		sol_lapse += clock() - time_start;
 
