@@ -209,6 +209,15 @@ int branch_and_bound(IntDequeue *q, int UB, int UB_cur, int LB, int priority, di
 					PriorityEdge = q[0].que[(q[0].front + q[0].num - 1) % q[0].max];
 					SecondPosition = q[0].que[(q[0].front + q[0].num - 2) % q[0].max];
 				}
+				int num_open = 0;
+				for (int n = 1; n <= STACK - 1; n++)
+				{
+					num_open += TIER - q[n].num;
+				}
+				if (num_open < nblocking(q, dir))
+				{
+					continue;
+				}
 				LB_temp -= q[0].LB;
 				Deque(q, &num_ret, dir);
 				LB_temp += q[0].LB;
@@ -435,6 +444,15 @@ int branch_and_bound(IntDequeue *q, int UB, int UB_cur, int LB, int priority, di
 			{
 				PriorityEdge = q[0].que[(q[0].front + q[0].num - 1) % q[0].max];
 				SecondPosition = q[0].que[(q[0].front + q[0].num - 2) % q[0].max];
+			}
+			int num_open = 0;
+			for (int n = 1; n <= STACK - 1; n++)
+			{
+				num_open += TIER - q[n].num;
+			}
+			if (num_open < nblocking(q, dir))
+			{
+				continue;
 			}
 			LB_temp -= q[0].LB;
 			Deque(q, &num_ret, dir);
