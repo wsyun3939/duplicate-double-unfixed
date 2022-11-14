@@ -63,7 +63,7 @@ int main(void)
 
 		if (a % 100 == 1)
 		{
-			sprintf(filename, "../alpha=%.1f/%d-%d-%d_unres1800.csv", ALPHA, TIER, STACK, nblock);
+			sprintf(filename, "../alpha=%.1f/%d-%d-%d_unfix1800.csv", ALPHA, TIER, STACK, nblock);
 			fp_write = fopen(filename, "w");
 		}
 
