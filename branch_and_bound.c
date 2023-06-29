@@ -175,7 +175,7 @@ int branch_and_bound(IntDequeue *q, int UB, int UB_cur, int LB, int priority, di
 	if (Dir == both)
 	{
 		for (d = 0; d <= 1; d++)
-		{ //下界値を与える方向から順に積み替えを吟味する
+		{ // 下界値を与える方向から順に積み替えを吟味する
 			for (i = 0; i < k; i++)
 			{
 				if (i != 0)
@@ -218,13 +218,13 @@ int branch_and_bound(IntDequeue *q, int UB, int UB_cur, int LB, int priority, di
 				{
 					NumBlocking = nblocking(q, dir);
 					if (NumBlocking == 0)
-					{ //積み替え後，取り出しが可能な場合
+					{ // 積み替え後，取り出しが可能な場合
 						DirNext = both;
 						q_temp = malloc(STACK * (sizeof *q_temp));
 						Array_initialize(q_temp);
 						Array_copy(q_temp, q);
 						if (PriorityEdge == priority + 1 && q[1].que[q[1].min_idx[0]] != priority && q[0].num_min == 1)
-						{ //ドミナンス
+						{ // ドミナンス
 
 							Deque(&q_temp[0], &num_ret, dir);
 
@@ -420,94 +420,127 @@ int branch_and_bound(IntDequeue *q, int UB, int UB_cur, int LB, int priority, di
 	}
 	else
 	{
-		dir = q[0].dir;
+		dir = Dir;
 		if (dir == both)
 			dir = q[0].que[q[0].front] < q[0].que[(q[0].front + q[0].num - 1) % q[0].max] ? lower : upper;
-		for (d = 0; d <= 1; d++)
-		{ //下界値を与える方向から順に積み替えを吟味する
-			LB_temp = LB;
-			if (dir == lower)
-			{
-				PriorityEdge = q[0].que[q[0].front];
-				SecondPosition = q[0].que[(q[0].front + 1) % q[0].max];
-			}
-			else if (dir == upper)
-			{
-				PriorityEdge = q[0].que[(q[0].front + q[0].num - 1) % q[0].max];
-				SecondPosition = q[0].que[(q[0].front + q[0].num - 2) % q[0].max];
-			}
-			LB_temp -= q[0].LB;
-			Deque(q, &num_ret, dir);
-			LB_temp += q[0].LB;
-			if (LB_temp + depth > UB_cur)
-				;
-			else
-			{
-				NumBlocking = nblocking(q, dir);
-				if (NumBlocking == 0)
-				{ //積み替え後，取り出しが可能な場合
-					DirNext = both;
-					q_temp = malloc(STACK * (sizeof *q_temp));
-					Array_initialize(q_temp);
-					Array_copy(q_temp, q);
-					if (PriorityEdge == priority + 1 && q[1].que[q[1].min_idx[0]] != priority && q[0].num_min == 1)
-					{ //ドミナンス
+		LB_temp = LB;
+		if (dir == lower)
+		{
+			PriorityEdge = q[0].que[q[0].front];
+			SecondPosition = q[0].que[(q[0].front + 1) % q[0].max];
+		}
+		else if (dir == upper)
+		{
+			PriorityEdge = q[0].que[(q[0].front + q[0].num - 1) % q[0].max];
+			SecondPosition = q[0].que[(q[0].front + q[0].num - 2) % q[0].max];
+		}
+		LB_temp -= q[0].LB;
+		Deque(q, &num_ret, dir);
+		LB_temp += q[0].LB;
+		if (LB_temp + depth > UB_cur)
+			;
+		else
+		{
+			NumBlocking = nblocking(q, dir);
+			if (NumBlocking == 0)
+			{ // 積み替え後，取り出しが可能な場合
+				DirNext = both;
+				q_temp = malloc(STACK * (sizeof *q_temp));
+				Array_initialize(q_temp);
+				Array_copy(q_temp, q);
+				if (PriorityEdge == priority + 1 && q[1].que[q[1].min_idx[0]] != priority && q[0].num_min == 1)
+				{ // ドミナンス
 
-						Deque(&q_temp[0], &num_ret, dir);
+					Deque(&q_temp[0], &num_ret, dir);
 
 #if TEST == 0
-						printf("dominance:%d,%d\n", num_ret, num_ret + 1);
+					printf("dominance:%d,%d\n", num_ret, num_ret + 1);
 #endif
 
 #if TEST == 0
-						Array_print(q_temp);
+					Array_print(q_temp);
 #endif
 
-						insert_media(q_temp, 0);
-						p_before = 0;
+					insert_media(q_temp, 0);
+					p_before = 0;
 
-						if (Array_check(q_temp) == 1)
-						{
+					if (Array_check(q_temp) == 1)
+					{
 
-							printf("ブロック数が３個以下\n");
+						printf("ブロック数が３個以下\n");
 
-							MinRelocation = LB_temp + depth;
-							depth = 0;
-							Array_terminate(q_temp);
-							free(q_temp);
-							return MinRelocation;
-						}
-						ans = branch_and_bound(q_temp, UB, UB_cur, LB_temp, q_temp[0].que[q_temp[0].min_idx[0]], DirNext, start);
-						if (ans != 0 && ans != -1)
-						{
-							Array_terminate(q_temp);
-							free(q_temp);
-							return MinRelocation;
-						}
-						else if (ans == -1)
-						{
-							Array_terminate(q_temp);
-							free(q_temp);
-							return -1;
-						}
-
-#if TEST == 0
-						printf("Lower termination.\n");
-						Array_print(q);
-#endif
+						MinRelocation = LB_temp + depth;
+						depth = 0;
+						Array_terminate(q_temp);
+						free(q_temp);
+						return MinRelocation;
 					}
+					ans = branch_and_bound(q_temp, UB, UB_cur, LB_temp, q_temp[0].que[q_temp[0].min_idx[0]], DirNext, start);
+					if (ans != 0 && ans != -1)
+					{
+						Array_terminate(q_temp);
+						free(q_temp);
+						return MinRelocation;
+					}
+					else if (ans == -1)
+					{
+						Array_terminate(q_temp);
+						free(q_temp);
+						return -1;
+					}
+
+#if TEST == 0
+					printf("Lower termination.\n");
+					Array_print(q);
+#endif
+				}
+				else
+				{
+					for (j = STACK - 1; j > 0; j--)
+					{
+						BG_index[j] = Enque(&q_temp[j], PriorityEdge, dir);
+						if (BG_index[j] != -1)
+							Deque(&q_temp[j], &num_ret, dir);
+					}
+					for (j = STACK - 1; j > 0; j--)
+					{
+						if (BG_index[j] == 0)
+						{ // BG積み替えが可能
+							Enque(&q_temp[j], PriorityEdge, dir);
+
+#if TEST == 0
+							printf("relocation(0,%d)\n", j);
+							Array_print(q_temp);
+#endif
+
+							ans = branch_and_bound(q_temp, UB, UB_cur, LB_temp, priority, DirNext, start);
+							if (ans != 0 && ans != -1)
+							{
+								Array_terminate(q_temp);
+								free(q_temp);
+								return MinRelocation;
+							}
+							else if (ans == -1)
+							{
+								Array_terminate(q_temp);
+								free(q_temp);
+								return -1;
+							}
+							Array_copy(q_temp, q);
+
+#if TEST == 0
+							Array_print(q_temp);
+#endif
+						}
+					}
+					if (LB_temp + depth + 1 > UB_cur)
+						;
 					else
 					{
 						for (j = STACK - 1; j > 0; j--)
 						{
-							BG_index[j] = Enque(&q_temp[j], PriorityEdge, dir);
-							if (BG_index[j] != -1)
-								Deque(&q_temp[j], &num_ret, dir);
-						}
-						for (j = STACK - 1; j > 0; j--)
-						{
-							if (BG_index[j] == 0)
-							{ // BG積み替えが可能
+							if (BG_index[j] == 1)
+							{ // BG積み替え不可能
 								Enque(&q_temp[j], PriorityEdge, dir);
 
 #if TEST == 0
@@ -515,7 +548,7 @@ int branch_and_bound(IntDequeue *q, int UB, int UB_cur, int LB, int priority, di
 								Array_print(q_temp);
 #endif
 
-								ans = branch_and_bound(q_temp, UB, UB_cur, LB_temp, priority, DirNext, start);
+								ans = branch_and_bound(q_temp, UB, UB_cur, LB_temp + 1, priority, DirNext, start);
 								if (ans != 0 && ans != -1)
 								{
 									Array_terminate(q_temp);
@@ -535,58 +568,54 @@ int branch_and_bound(IntDequeue *q, int UB, int UB_cur, int LB, int priority, di
 #endif
 							}
 						}
-						if (LB_temp + depth + 1 > UB_cur)
-							;
-						else
-						{
-							for (j = STACK - 1; j > 0; j--)
-							{
-								if (BG_index[j] == 1)
-								{ // BG積み替え不可能
-									Enque(&q_temp[j], PriorityEdge, dir);
-
-#if TEST == 0
-									printf("relocation(0,%d)\n", j);
-									Array_print(q_temp);
-#endif
-
-									ans = branch_and_bound(q_temp, UB, UB_cur, LB_temp + 1, priority, DirNext, start);
-									if (ans != 0 && ans != -1)
-									{
-										Array_terminate(q_temp);
-										free(q_temp);
-										return MinRelocation;
-									}
-									else if (ans == -1)
-									{
-										Array_terminate(q_temp);
-										free(q_temp);
-										return -1;
-									}
-									Array_copy(q_temp, q);
-
-#if TEST == 0
-									Array_print(q_temp);
-#endif
-								}
-							}
-						}
 					}
-					Array_terminate(q_temp);
-					free(q_temp);
 				}
+				Array_terminate(q_temp);
+				free(q_temp);
+			}
+			else
+			{
+				for (j = STACK - 1; j > 0; j--)
+				{
+					BG_index[j] = Enque(&q[j], PriorityEdge, dir);
+					if (BG_index[j] != -1)
+						Deque(&q[j], &num_ret, dir);
+				}
+				for (j = STACK - 1; j > 0; j--)
+				{
+					if (BG_index[j] == 0)
+					{ // BG積み替え可能
+						Enque(&q[j], PriorityEdge, dir);
+
+#if TEST == 0
+						printf("relocation(0,%d)\n", j);
+						Array_print(q);
+#endif
+
+						ans = branch_and_bound(q, UB, UB_cur, LB_temp, priority, dir, start);
+						if (ans != 0 && ans != -1)
+						{
+							return MinRelocation;
+						}
+						else if (ans == -1)
+						{
+							return -1;
+						}
+						Deque(&q[j], &num_ret, dir);
+
+#if TEST == 0
+						Array_print(q);
+#endif
+					}
+				}
+				if (LB_temp + depth + 1 > UB_cur)
+					;
 				else
 				{
 					for (j = STACK - 1; j > 0; j--)
 					{
-						BG_index[j] = Enque(&q[j], PriorityEdge, dir);
-						if (BG_index[j] != -1)
-							Deque(&q[j], &num_ret, dir);
-					}
-					for (j = STACK - 1; j > 0; j--)
-					{
-						if (BG_index[j] == 0)
-						{ // BG積み替え可能
+						if (BG_index[j] == 1)
+						{ // BG積み替え不可能
 							Enque(&q[j], PriorityEdge, dir);
 
 #if TEST == 0
@@ -594,7 +623,7 @@ int branch_and_bound(IntDequeue *q, int UB, int UB_cur, int LB, int priority, di
 							Array_print(q);
 #endif
 
-							ans = branch_and_bound(q, UB, UB_cur, LB_temp, priority, dir, start);
+							ans = branch_and_bound(q, UB, UB_cur, LB_temp + 1, priority, dir, start);
 							if (ans != 0 && ans != -1)
 							{
 								return MinRelocation;
@@ -610,52 +639,14 @@ int branch_and_bound(IntDequeue *q, int UB, int UB_cur, int LB, int priority, di
 #endif
 						}
 					}
-					if (LB_temp + depth + 1 > UB_cur)
-						;
-					else
-					{
-						for (j = STACK - 1; j > 0; j--)
-						{
-							if (BG_index[j] == 1)
-							{ // BG積み替え不可能
-								Enque(&q[j], PriorityEdge, dir);
-
-#if TEST == 0
-								printf("relocation(0,%d)\n", j);
-								Array_print(q);
-#endif
-
-								ans = branch_and_bound(q, UB, UB_cur, LB_temp + 1, priority, dir, start);
-								if (ans != 0 && ans != -1)
-								{
-									return MinRelocation;
-								}
-								else if (ans == -1)
-								{
-									return -1;
-								}
-								Deque(&q[j], &num_ret, dir);
-
-#if TEST == 0
-								Array_print(q);
-#endif
-							}
-						}
-					}
 				}
 			}
-			Enque(q, PriorityEdge, dir);
+		}
+		Enque(q, PriorityEdge, dir);
 
 #if TEST == 0
-			Array_print(q);
+		Array_print(q);
 #endif
-
-			LB_temp = LB;
-			if (dir == lower)
-				dir = upper;
-			else
-				dir = lower;
-		}
 	}
 	depth--;
 	if (depth == 0)
