@@ -34,7 +34,7 @@ int branch_and_bound(IntDequeue *q, int UB, int UB_cur, int LB, int priority, di
 	int d = 0;
 	int LB_temp = 0;
 	int PriorityEdge = 0;
-	int BG_index[STACK] = {0};
+	int BG_index[2 * STACK] = {0};
 	direction dir = Dir;
 	direction DirNext = Dir;
 	IntDequeue *q_temp = NULL;
@@ -267,6 +267,12 @@ int branch_and_bound(IntDequeue *q, int UB, int UB_cur, int LB, int priority, di
 								if (BG_index[j] != -1)
 									Deque(&q_temp[j], &num_ret, dir);
 							}
+							for (j = STACK; j < 2 * STACK; j++)
+							{
+								BG_index[j] = Enque(&q_temp[j - STACK], PriorityEdge, 1 - dir);
+								if (BG_index[j] != -1)
+									Deque(&q_temp[j - STACK], &num_ret, 1 - dir);
+							}
 							for (j = STACK - 1; j > 0; j--)
 							{
 								if (BG_index[j] == 0)
@@ -275,6 +281,37 @@ int branch_and_bound(IntDequeue *q, int UB, int UB_cur, int LB, int priority, di
 
 #if TEST == 0
 									printf("relocation(0,%d)\n", j);
+									Array_print(q_temp);
+#endif
+
+									ans = branch_and_bound(q_temp, UB, UB_cur, LB_temp, priority, DirNext, start);
+									if (ans != 0 && ans != -1)
+									{
+										Array_terminate(q_temp);
+										free(q_temp);
+										return MinRelocation;
+									}
+									else if (ans == -1)
+									{
+										Array_terminate(q_temp);
+										free(q_temp);
+										return -1;
+									}
+									Array_copy(q_temp, q);
+
+#if TEST == 0
+									Array_print(q_temp);
+#endif
+								}
+							}
+							for (j = 2 * STACK - 1; j >= STACK; j--)
+							{
+								if (BG_index[j] == 0)
+								{ // BG積み替えが可能
+									Enque(&q_temp[j - STACK], PriorityEdge, 1 - dir);
+
+#if TEST == 0
+									printf("relocation(%d,%d)\n", i, j - STACK);
 									Array_print(q_temp);
 #endif
 
@@ -333,6 +370,37 @@ int branch_and_bound(IntDequeue *q, int UB, int UB_cur, int LB, int priority, di
 #endif
 									}
 								}
+								for (j = 2 * STACK - 1; j >= STACK; j--)
+								{
+									if (BG_index[j] == 1)
+									{ // BG積み替え不可能
+										Enque(&q_temp[j - STACK], PriorityEdge, 1 - dir);
+
+#if TEST == 0
+										printf("relocation(%d,%d)\n", i, j - STACK);
+										Array_print(q_temp);
+#endif
+
+										ans = branch_and_bound(q_temp, UB, UB_cur, LB_temp + 1, priority, DirNext, start);
+										if (ans != 0 && ans != -1)
+										{
+											Array_terminate(q_temp);
+											free(q_temp);
+											return MinRelocation;
+										}
+										else if (ans == -1)
+										{
+											Array_terminate(q_temp);
+											free(q_temp);
+											return -1;
+										}
+										Array_copy(q_temp, q);
+
+#if TEST == 0
+										Array_print(q_temp);
+#endif
+									}
+								}
 							}
 						}
 						Array_terminate(q_temp);
@@ -345,6 +413,12 @@ int branch_and_bound(IntDequeue *q, int UB, int UB_cur, int LB, int priority, di
 							BG_index[j] = Enque(&q[j], PriorityEdge, dir);
 							if (BG_index[j] != -1)
 								Deque(&q[j], &num_ret, dir);
+						}
+						for (j = STACK; j < 2 * STACK; j++)
+						{
+							BG_index[j] = Enque(&q[j - STACK], PriorityEdge, 1 - dir);
+							if (BG_index[j] != -1)
+								Deque(&q[j - STACK], &num_ret, 1 - dir);
 						}
 						for (j = STACK - 1; j > 0; j--)
 						{
@@ -367,6 +441,33 @@ int branch_and_bound(IntDequeue *q, int UB, int UB_cur, int LB, int priority, di
 									return -1;
 								}
 								Deque(&q[j], &num_ret, dir);
+
+#if TEST == 0
+								Array_print(q);
+#endif
+							}
+						}
+						for (j = 2 * STACK - 1; j >= STACK; j--)
+						{
+							if (BG_index[j] == 0)
+							{ // BG積み替え可能
+								Enque(&q[j - STACK], PriorityEdge, 1 - dir);
+
+#if TEST == 0
+								printf("relocation(%d,%d)\n", i, j - STACK);
+								Array_print(q);
+#endif
+
+								ans = branch_and_bound(q, UB, UB_cur, LB_temp, priority, 1 - dir, start);
+								if (ans != 0 && ans != -1)
+								{
+									return MinRelocation;
+								}
+								else if (ans == -1)
+								{
+									return -1;
+								}
+								Deque(&q[j - STACK], &num_ret, 1 - dir);
 
 #if TEST == 0
 								Array_print(q);
@@ -398,6 +499,33 @@ int branch_and_bound(IntDequeue *q, int UB, int UB_cur, int LB, int priority, di
 										return -1;
 									}
 									Deque(&q[j], &num_ret, dir);
+
+#if TEST == 0
+									Array_print(q);
+#endif
+								}
+							}
+							for (j = 2 * STACK - 1; j >= STACK; j--)
+							{
+								if (BG_index[j] == 1)
+								{ // BG積み替え不可能
+									Enque(&q[j - STACK], PriorityEdge, 1 - dir);
+
+#if TEST == 0
+									printf("relocation(%d,%d)\n", i, j - STACK);
+									Array_print(q);
+#endif
+
+									ans = branch_and_bound(q, UB, UB_cur, LB_temp + 1, priority, 1 - dir, start);
+									if (ans != 0 && ans != -1)
+									{
+										return MinRelocation;
+									}
+									else if (ans == -1)
+									{
+										return -1;
+									}
+									Deque(&q[j - STACK], &num_ret, 1 - dir);
 
 #if TEST == 0
 									Array_print(q);
@@ -502,6 +630,12 @@ int branch_and_bound(IntDequeue *q, int UB, int UB_cur, int LB, int priority, di
 						if (BG_index[j] != -1)
 							Deque(&q_temp[j], &num_ret, dir);
 					}
+					for (j = STACK; j < 2 * STACK; j++)
+					{
+						BG_index[j] = Enque(&q_temp[j - STACK], PriorityEdge, 1 - dir);
+						if (BG_index[j] != -1)
+							Deque(&q_temp[j - STACK], &num_ret, 1 - dir);
+					}
 					for (j = STACK - 1; j > 0; j--)
 					{
 						if (BG_index[j] == 0)
@@ -510,6 +644,37 @@ int branch_and_bound(IntDequeue *q, int UB, int UB_cur, int LB, int priority, di
 
 #if TEST == 0
 							printf("relocation(0,%d)\n", j);
+							Array_print(q_temp);
+#endif
+
+							ans = branch_and_bound(q_temp, UB, UB_cur, LB_temp, priority, DirNext, start);
+							if (ans != 0 && ans != -1)
+							{
+								Array_terminate(q_temp);
+								free(q_temp);
+								return MinRelocation;
+							}
+							else if (ans == -1)
+							{
+								Array_terminate(q_temp);
+								free(q_temp);
+								return -1;
+							}
+							Array_copy(q_temp, q);
+
+#if TEST == 0
+							Array_print(q_temp);
+#endif
+						}
+					}
+					for (j = 2 * STACK - 1; j >= STACK; j--)
+					{
+						if (BG_index[j] == 0)
+						{ // BG積み替えが可能
+							Enque(&q_temp[j - STACK], PriorityEdge, 1 - dir);
+
+#if TEST == 0
+							printf("relocation(%d,%d)\n", i, j - STACK);
 							Array_print(q_temp);
 #endif
 
@@ -568,6 +733,37 @@ int branch_and_bound(IntDequeue *q, int UB, int UB_cur, int LB, int priority, di
 #endif
 							}
 						}
+						for (j = 2 * STACK - 1; j >= STACK; j--)
+						{
+							if (BG_index[j] == 1)
+							{ // BG積み替え不可能
+								Enque(&q_temp[j - STACK], PriorityEdge, 1 - dir);
+
+#if TEST == 0
+								printf("relocation(%d,%d)\n", i, j - STACK);
+								Array_print(q_temp);
+#endif
+
+								ans = branch_and_bound(q_temp, UB, UB_cur, LB_temp + 1, priority, DirNext, start);
+								if (ans != 0 && ans != -1)
+								{
+									Array_terminate(q_temp);
+									free(q_temp);
+									return MinRelocation;
+								}
+								else if (ans == -1)
+								{
+									Array_terminate(q_temp);
+									free(q_temp);
+									return -1;
+								}
+								Array_copy(q_temp, q);
+
+#if TEST == 0
+								Array_print(q_temp);
+#endif
+							}
+						}
 					}
 				}
 				Array_terminate(q_temp);
@@ -580,6 +776,12 @@ int branch_and_bound(IntDequeue *q, int UB, int UB_cur, int LB, int priority, di
 					BG_index[j] = Enque(&q[j], PriorityEdge, dir);
 					if (BG_index[j] != -1)
 						Deque(&q[j], &num_ret, dir);
+				}
+				for (j = STACK; j < 2 * STACK; j++)
+				{
+					BG_index[j] = Enque(&q[j - STACK], PriorityEdge, 1 - dir);
+					if (BG_index[j] != -1)
+						Deque(&q[j - STACK], &num_ret, 1 - dir);
 				}
 				for (j = STACK - 1; j > 0; j--)
 				{
@@ -602,6 +804,33 @@ int branch_and_bound(IntDequeue *q, int UB, int UB_cur, int LB, int priority, di
 							return -1;
 						}
 						Deque(&q[j], &num_ret, dir);
+
+#if TEST == 0
+						Array_print(q);
+#endif
+					}
+				}
+				for (j = 2 * STACK - 1; j >= STACK; j--)
+				{
+					if (BG_index[j] == 0)
+					{ // BG積み替え可能
+						Enque(&q[j - STACK], PriorityEdge, 1 - dir);
+
+#if TEST == 0
+						printf("relocation(%d,%d)\n", i, j - STACK);
+						Array_print(q);
+#endif
+
+						ans = branch_and_bound(q, UB, UB_cur, LB_temp, priority, 1 - dir, start);
+						if (ans != 0 && ans != -1)
+						{
+							return MinRelocation;
+						}
+						else if (ans == -1)
+						{
+							return -1;
+						}
+						Deque(&q[j - STACK], &num_ret, 1 - dir);
 
 #if TEST == 0
 						Array_print(q);
@@ -633,6 +862,33 @@ int branch_and_bound(IntDequeue *q, int UB, int UB_cur, int LB, int priority, di
 								return -1;
 							}
 							Deque(&q[j], &num_ret, dir);
+
+#if TEST == 0
+							Array_print(q);
+#endif
+						}
+					}
+					for (j = 2 * STACK - 1; j >= STACK; j--)
+					{
+						if (BG_index[j] == 1)
+						{ // BG積み替え不可能
+							Enque(&q[j - STACK], PriorityEdge, 1 - dir);
+
+#if TEST == 0
+							printf("relocation(%d,%d)\n", i, j - STACK);
+							Array_print(q);
+#endif
+
+							ans = branch_and_bound(q, UB, UB_cur, LB_temp + 1, priority, 1 - dir, start);
+							if (ans != 0 && ans != -1)
+							{
+								return MinRelocation;
+							}
+							else if (ans == -1)
+							{
+								return -1;
+							}
+							Deque(&q[j - STACK], &num_ret, 1 - dir);
 
 #if TEST == 0
 							Array_print(q);
