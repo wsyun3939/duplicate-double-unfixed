@@ -87,11 +87,6 @@ int main(void)
 
 		Array_print(stack);
 		int min_relocation = branch_and_bound(stack, UB, UB_cur, LB1, priority, both, clock());
-		sol_lapse += clock() - time_start;
-		if (max < clock() - time_start)
-		{
-			max = clock() - time_start;
-		}
 
 		printf("min_relocation:%d,difference%d\n", min_relocation, min_relocation - LB1);
 		if (min_relocation == -1)
@@ -100,6 +95,11 @@ int main(void)
 		}
 		else
 		{
+			sol_lapse += clock() - time_start;
+			if (max < clock() - time_start)
+			{
+				max = clock() - time_start;
+			}
 			sum += min_relocation;
 			gap += min_relocation - LB1;
 			if (max_gap < min_relocation - LB1)
